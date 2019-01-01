@@ -44,7 +44,8 @@ def get_binary_image(image, s_thresh=(170, 255), sx_thresh=(20, 100)):
 # Choose the number of sliding windows
 # Set the width of the windows +/- margin
 # Set minimum number of pixels found to recenter window
-def find_lane_pixels(binary_warped, nwindows=9, margin=100, minpix=50, **kwargs):
+offset = 100
+def find_lane_pixels(binary_warped, nwindows=9, margin=50, minpix=25, **kwargs):
     
     # Take a histogram of the bottom half of the image
     histogram = np.sum(binary_warped[binary_warped.shape[0]//2:,:], axis=0)
@@ -55,7 +56,7 @@ def find_lane_pixels(binary_warped, nwindows=9, margin=100, minpix=50, **kwargs)
     # Find the peak of the left and right halves of the histogram
     # These will be the starting point for the left and right lines
     midpoint = np.int(histogram.shape[0]//2)
-    leftx_base = np.argmax(histogram[:midpoint])
+    leftx_base = np.argmax(histogram[offset:midpoint]) + offset
     rightx_base = np.argmax(histogram[midpoint:]) + midpoint
 
     # Set height of windows - based on nwindows above and image shape
@@ -147,13 +148,18 @@ def fit_polynomial(binary_warped, **kwargs):
     out_img[lefty, leftx] = [255, 0, 0]
     out_img[righty, rightx] = [0, 0, 255]
 
+    # get only pixels used for regression
+    out_imge2 = np.zeros_like(out_img)
+    out_imge2[lefty, leftx] = [255, 0, 0]
+    out_imge2[righty, rightx] = [0, 0, 255]
+
     # Plots the left and right polynomials on the lane lines
     draw_poits(out_img, left_fitx, ploty)
     draw_poits(out_img, right_fitx, ploty)
     # plt.plot(left_fitx, ploty, color='yellow')
     # plt.plot(right_fitx, ploty, color='yellow')
 
-    return out_img, ploty, left_fit, right_fit, left_fitx, right_fitx
+    return out_img, ploty, left_fit, right_fit, left_fitx, right_fitx, out_imge2
 
 def draw_poits(image, xs,ys):
     color = (0,255,255)
@@ -190,13 +196,14 @@ def putText(img, msg, pos, font, size, color, thickness):
 mtx, dist = get_camera_calibration(os.path.join(dir_path, "calibration.npz"))
 
 image = cv2.imread("test_images/straight_lines1.jpg")
-image = cv2.imread("test_images/straight_lines2.jpg")
-image = cv2.imread("test_images/test1.jpg")
-image = cv2.imread("test_images/test2.jpg")
-image = cv2.imread("test_images/test3.jpg")
-image = cv2.imread("test_images/test4.jpg")
-image = cv2.imread("test_images/test5.jpg")
-image = cv2.imread("test_images/test6.jpg")
+# image = cv2.imread("test_images/straight_lines2.jpg")
+# image = cv2.imread("test_images/test1.jpg")
+# image = cv2.imread("test_images/test2.jpg")
+# image = cv2.imread("test_images/test3.jpg")
+# image = cv2.imread("test_images/test4.jpg")
+# image = cv2.imread("test_images/test5.jpg")
+# image = cv2.imread("test_images/test6.jpg")
+# image = cv2.imread("test_images/test7.jpg")
 
 
 image_undist = cv2.undistort(image, mtx, dist)
@@ -252,19 +259,19 @@ cv2.polylines(image_undist_cp,[np.int32(src)],True,(0,0,255), 2)
 cv2.polylines(warped,[np.int32(dst)],True,(0,0,255), 2)
 
 # Visualize
-# cv2.imshow("Warped area", image_undist_cp)
-# cv2.imshow("Warpped image", warped)
-# # cv2.imshow("Project1", final_image)
-# cv2.waitKey(0)
+cv2.imshow("Warped area", image_undist_cp)
+cv2.imshow("Warpped image", warped)
+# cv2.imshow("Project1", final_image)
+cv2.waitKey(0)
 
 ## Now fit a 2nd degree polynomial
 binary_warped = cv2.warpPerspective(gray_binary, M, img_size)
 
 # leftx, lefty, rightx, righty, out_img = find_lane_pixels(binary_warped)
-out_img, ploty, left_fit_cr, right_fit_cr, left_fitx, right_fitx = fit_polynomial(binary_warped)
-# cv2.imshow("Gray Warped", binary_warped)
-# cv2.imshow("Process", out_img)
-# cv2.waitKey(0)
+out_img, ploty, left_fit_cr, right_fit_cr, left_fitx, right_fitx, out_img2 = fit_polynomial(binary_warped)
+cv2.imshow("Gray Warped", binary_warped)
+cv2.imshow("Process", out_img)
+cv2.waitKey(0)
 
 ### Calculate curvature and position to vehicle with respect to center 
 ym_per_pix = 30/720 # meters per pixel in y dimension
@@ -279,6 +286,7 @@ left_curverad, right_curverad, offset = measure_curvature_offset(
     xm_per_pix, 
     ym_per_pix
 )
+print(type(right_fit_cr))
 print(left_curverad, 'm', right_curverad, 'm', offset, 'm')
 curvature = (left_curverad +  right_curverad)/2
 
@@ -302,9 +310,14 @@ cv2.fillPoly(color_warp, np.int_([pts]), (0,255, 0))
 
 Minv = np.linalg.inv(M)
 # Warp the blank back to original image space using inverse perspective matrix (Minv)
-newwarp = cv2.warpPerspective(color_warp, Minv, (image_undist.shape[1], image_undist.shape[0])) 
+newwarp = cv2.warpPerspective(color_warp, Minv, (image_undist.shape[1], image_undist.shape[0]))
+
+# Warp pixels used for regression
+fit_warp = cv2.warpPerspective(out_img2, Minv, (image_undist.shape[1], image_undist.shape[0]))
+
 # Combine the result with the original image
 result = cv2.addWeighted(image_undist, 1, newwarp, 0.3, 0)
+result = cv2.addWeighted(result, 1, fit_warp, 1, 0)
 cv2.imshow("Final", result)
 cv2.waitKey(0)
 
