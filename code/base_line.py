@@ -208,23 +208,28 @@ image = cv2.imread("test_images/straight_lines1.jpg")
 
 image_undist = cv2.undistort(image, mtx, dist)
 
+# save undistorted image
+cv2.imwrite("output_images/undistorted.jpg", image_undist)
+
 ## Create binary image part
-color_image, gray_binary = get_binary_image(image_undist, s_thresh=(170,250), sx_thresh=(20,120))
+color_image, gray_binary = get_binary_image(image_undist, s_thresh=(130,250), sx_thresh=(20,120))
+# save binary image
+cv2.imwrite("output_images/gray_binary.jpg", gray_binary)
+cv2.imwrite("output_images/color_binary.jpg", color_image)
 
 ## Visualize
 # cv2.imshow("origin", image)
 # cv2.imshow("undistorted", image_undist)
 # cv2.imshow("Color Binary", color_image)
-# cv2.imshow("Binary", gray_binary)
-# cv2.waitKey(0)
-
+cv2.imshow("Binary", gray_binary)
+cv2.waitKey(0)
 
 ## Warpped part
 offset = 100 # offset for dst points
 # Grab the image shape
 img_size = (gray_binary.shape[1], gray_binary.shape[0])
 
-final_image, lines_image, fitted_lines = process_image(image_undist)
+# final_image, lines_image, fitted_lines = process_image(image_undist)
 
 # process list and adjust to proper format for scr points
 # src = np.array(fitted_lines, dtype=np.float32).reshape(4,2)[[0,1,3,2]]
@@ -259,8 +264,8 @@ cv2.polylines(image_undist_cp,[np.int32(src)],True,(0,0,255), 2)
 cv2.polylines(warped,[np.int32(dst)],True,(0,0,255), 2)
 
 # Visualize
-cv2.imshow("Warped area", image_undist_cp)
-cv2.imshow("Warpped image", warped)
+cv2.imshow("Undistorted image with source points drawn", cv2.resize(image_undist_cp, (0,0), fx=0.5, fy=0.5))
+cv2.imshow("Warped result with dest. points drawn", cv2.resize(warped, (0,0), fx=0.5, fy=0.5))
 # cv2.imshow("Project1", final_image)
 cv2.waitKey(0)
 
