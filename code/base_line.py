@@ -286,7 +286,7 @@ left_curverad, right_curverad, offset = measure_curvature_offset(
     xm_per_pix, 
     ym_per_pix
 )
-print(type(right_fit_cr))
+
 print(left_curverad, 'm', right_curverad, 'm', offset, 'm')
 curvature = (left_curverad +  right_curverad)/2
 
