@@ -114,9 +114,9 @@ I implemented this step in lines # through # in my code in `yet_another_file.py`
 
 #### 2. Final video output.
 
-Here's a [link to my video result](./output.mp4)
+Here's a [link to my video result (full HD)](./output.mp4)
 
-Or just see the video gif at 3x speed
+Or just see the video gif at 3x speed (low res)
 
 ![alt text][videogif]
 
