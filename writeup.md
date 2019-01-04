@@ -193,6 +193,8 @@ Or just see the video gif at 3x speed (low res)
 
 #### 1. Problems / issues in the implementation of this project. Failures? More robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further. 
+I used a hardcoded `src` region for the warped part. This was little difficult to tweak for the lines that were parallel, to actually be also parallel in the warped space. I think this could fail for other videos or other conditions since those numbers are fixed. I think it could be improved by defining it better like as a function of the image size.
 
+The techniques for getting the binary image where HSL thresholding and Sobel gradients. This works for the video of this project, but I had to tweak the parameters also to work where the highway was lighter. I think this could fail for other light or road conditions. Maybe using other techniques combined could generate a more robust solution, or training some deep learning network for predicting the pixels lanes.
 
+I also noticed that the algorithm does not run as fast as expected, maybe the quadratic regression is a heavy task. Maybe using series of Hough transforms could speed up the curve estimation. Also the meter/pixel relation were defined assuming a lot of things. Having other way to measure that relation could improve the radius estimation and position of the car.
