@@ -351,7 +351,7 @@ def pipe_line(image_undist, M, Minv, left_line, right_line):
 
 
 ## Save output
-SAVE_OUTPUT = True
+SAVE_OUTPUT = False
 
 ### Calculate curvature and position to vehicle with respect to center 
 ym_per_pix = 30/720 # meters per pixel in y dimension

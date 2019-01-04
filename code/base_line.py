@@ -45,7 +45,7 @@ def get_binary_image(image, s_thresh=(170, 255), sx_thresh=(20, 100)):
 # Set the width of the windows +/- margin
 # Set minimum number of pixels found to recenter window
 offset = 100
-def find_lane_pixels(binary_warped, nwindows=9, margin=50, minpix=25, **kwargs):
+def find_lane_pixels(binary_warped, nwindows=9, margin=75, minpix=25, **kwargs):
     
     # Take a histogram of the bottom half of the image
     histogram = np.sum(binary_warped[binary_warped.shape[0]//2:,:], axis=0)
@@ -276,6 +276,7 @@ binary_warped = cv2.warpPerspective(gray_binary, M, img_size)
 out_img, ploty, left_fit_cr, right_fit_cr, left_fitx, right_fitx, out_img2 = fit_polynomial(binary_warped)
 cv2.imshow("Gray Warped", binary_warped)
 cv2.imshow("Process", out_img)
+cv2.imwrite("output_images/fitted_lines.jpg", out_img)
 cv2.waitKey(0)
 
 ### Calculate curvature and position to vehicle with respect to center 
@@ -300,7 +301,6 @@ position = "left" if offset < 0 else "right"
 putText(image_undist, "Vehicle is {:.2f}(m) {} of center".format(abs(offset), position), (10,100), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (255,255,255), 2)
 
 #### Draw  lane area
-
 # Create an image to draw the lines on
 warp_zero = np.zeros_like(binary_warped).astype(np.uint8)
 color_warp = np.dstack((warp_zero, warp_zero, warp_zero))
@@ -323,7 +323,9 @@ fit_warp = cv2.warpPerspective(out_img2, Minv, (image_undist.shape[1], image_und
 # Combine the result with the original image
 result = cv2.addWeighted(image_undist, 1, newwarp, 0.3, 0)
 result = cv2.addWeighted(result, 1, fit_warp, 1, 0)
+
 cv2.imshow("Final", result)
+cv2.imwrite("output_images/final.jpg", result)
 cv2.waitKey(0)
 
 
